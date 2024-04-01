@@ -96,7 +96,7 @@ export class LipSync {
     }
 
     analyze() {
-        if (!this.analyser || !this.pcmData) {
+        if (!this.analyser || !this.pcmData || !this.currentAudio) {
             return 0;
         }
 

@@ -53,3 +53,17 @@ test("lip sync", async () => {
     await expect(seekAndGetParam(timeOffsetBeforeWave)).resolves.toBe(0);
     await expect(seekAndGetParam(timeOffsetDuringWave)).resolves.toBeGreaterThan(0);
 });
+
+test("lip sync aborted", async () => {
+    const model = new Cubism4InternalModel(
+        await TEST_MODEL4.coreModel(),
+        new Cubism4ModelSettings(TEST_MODEL4.modelJsonWithUrl),
+        { idleMotionGroup: "nonExistent" },
+    );
+
+    await expect(model.lipSync.play(soundUrl)).resolves.toBe(undefined);
+    model.lipSync.stop();
+
+    expect(model.lipSync.currentAudio).toBe(undefined);
+    expect(SoundManager.audios.length).toBe(0);
+});

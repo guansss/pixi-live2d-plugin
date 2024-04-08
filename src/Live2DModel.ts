@@ -160,7 +160,7 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
      * @param priority - The priority to be applied. (0: No priority, 1: IDLE, 2:NORMAL, 3:FORCE) (default: 2)
      * @return Promise that resolves with true if the motion is successfully started, and false otherwise.
      */
-    motion(group: string, index: number, priority: MotionPriority): Promise<boolean> {
+    motion(group: string, index?: number, priority?: MotionPriority): Promise<boolean> {
         return index === undefined
             ? this.internalModel.motionManager.startRandomMotion(group, priority)
             : this.internalModel.motionManager.startMotion(group, index, priority);

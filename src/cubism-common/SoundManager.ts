@@ -26,13 +26,11 @@ export class SoundManager {
         this.audios.forEach((audio) => (audio.volume = this._volume));
     }
 
-    // TODO: return an ID?
     /**
      * Creates an audio element and adds it to the {@link audios}.
      * @param file - URL of the sound file.
      * @param onFinish - Callback invoked when the playback has finished.
      * @param onError - Callback invoked when error occurs.
-     * @param crossOrigin - Cross origin setting.
      * @return Created audio element.
      */
     static add(

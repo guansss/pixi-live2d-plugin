@@ -1,5 +1,7 @@
-import type { ModelSettings } from "@/common";
+import type { Live2DResourceOptions, ModelSettings } from "@/common";
 import { SoundManager, clamp, logger } from "@/common";
+
+export interface LipSyncOptions extends Live2DResourceOptions {}
 
 export interface LipSyncPlayOptions {
     /**
@@ -7,12 +9,6 @@ export interface LipSyncPlayOptions {
      * @default The value of `SoundManager.volume`
      */
     volume?: number;
-
-    /**
-     * `crossorigin` attribute for the audio element.
-     * @default null
-     */
-    crossOrigin?: string | null;
 }
 
 export class LipSync {
@@ -24,10 +20,13 @@ export class LipSync {
     currentAudio: HTMLAudioElement | undefined;
     playing = false;
 
+    options?: LipSyncOptions;
+
     private pcmData: Float32Array | undefined;
 
-    constructor(settings: ModelSettings) {
+    constructor(settings: ModelSettings, options?: LipSyncOptions) {
         this.tag = `LipSync(${settings.name})`;
+        this.options = options;
     }
 
     /**
@@ -36,7 +35,7 @@ export class LipSync {
      * this URL will not be resolved based on the model's URL.
      * @returns Promise that resolves with true if the sound is playing, false if it's not
      */
-    async play(sound: string, { volume, crossOrigin = null }: LipSyncPlayOptions = {}) {
+    async play(sound: string, { volume }: LipSyncPlayOptions = {}) {
         const soundForLogging = sound.startsWith("data:")
             ? sound.slice(0, sound.indexOf(",") + 1) + "..."
             : sound;
@@ -72,7 +71,9 @@ export class LipSync {
                 },
             );
 
-            audio.crossOrigin = crossOrigin;
+            if (this.options?.crossOrigin !== undefined) {
+                audio.crossOrigin = this.options.crossOrigin;
+            }
 
             if (volume !== undefined) {
                 audio.volume = volume;

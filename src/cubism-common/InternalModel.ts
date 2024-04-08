@@ -1,4 +1,5 @@
 import { FocusController } from "@/cubism-common/FocusController";
+import type { LipSyncOptions } from "@/cubism-common/LipSync";
 import { LipSync } from "@/cubism-common/LipSync";
 import type { ModelSettings } from "@/cubism-common/ModelSettings";
 import type { MotionManager, MotionManagerOptions } from "@/cubism-common/MotionManager";
@@ -38,7 +39,7 @@ export interface Bounds {
     height: number;
 }
 
-export interface InternalModelOptions extends MotionManagerOptions {}
+export interface InternalModelOptions extends MotionManagerOptions, LipSyncOptions {}
 
 const tempBounds: Bounds = { x: 0, y: 0, width: 0, height: 0 };
 
@@ -58,6 +59,8 @@ export abstract class InternalModel extends utils.EventEmitter {
     lipSync!: LipSync;
 
     abstract motionManager: MotionManager;
+
+    options?: InternalModelOptions;
 
     pose?: any;
     physics?: any;
@@ -115,11 +118,16 @@ export abstract class InternalModel extends utils.EventEmitter {
      */
     destroyed = false;
 
+    constructor(options?: InternalModelOptions) {
+        super();
+        this.options = options;
+    }
+
     /**
      * Should be called in the constructor of derived class.
      */
     protected init() {
-        this.lipSync = new LipSync(this.settings);
+        this.lipSync = new LipSync(this.settings, this.options);
 
         this.setupLayout();
         this.setupHitAreas();

@@ -68,7 +68,7 @@ export class Cubism4InternalModel extends InternalModel {
         settings: Cubism4ModelSettings,
         options?: InternalModelOptions,
     ) {
-        super();
+        super(options);
 
         this.coreModel = coreModel;
         this.settings = settings;

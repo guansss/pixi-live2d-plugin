@@ -3,11 +3,12 @@ import type { ExpressionManager } from "@/cubism-common/ExpressionManager";
 import type { ModelSettings } from "@/cubism-common/ModelSettings";
 import { MotionPriority, MotionState } from "@/cubism-common/MotionState";
 import { SoundManager } from "@/cubism-common/SoundManager";
+import type { Live2DResourceOptions } from "@/factory";
 import { logger } from "@/utils";
 import { utils } from "@pixi/core";
 import type { JSONObject, Mutable } from "../types/helpers";
 
-export interface MotionManagerOptions {
+export interface MotionManagerOptions extends Live2DResourceOptions {
     /**
      * How to preload the motions.
      * @default {@link MotionPreloadStrategy.NONE}
@@ -73,6 +74,8 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
      */
     readonly settings: ModelSettings;
 
+    options?: MotionManagerOptions;
+
     /**
      * The Motions. The structure is the same as {@link definitions}, initially each group contains
      * an empty array, which means all motions will be `undefined`. When a Motion has been loaded,
@@ -106,6 +109,7 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
         this.settings = settings;
         this.tag = `MotionManager(${settings.name})`;
         this.state.tag = this.tag;
+        this.options = options;
     }
 
     /**
@@ -242,6 +246,10 @@ export abstract class MotionManager<Motion = any, MotionSpec = any> extends util
                         () => (this.currentAudio = undefined),
                         () => (this.currentAudio = undefined),
                     );
+
+                    if (this.options?.crossOrigin !== undefined) {
+                        audio.crossOrigin = this.options.crossOrigin;
+                    }
 
                     this.currentAudio = audio;
                 } catch (e) {

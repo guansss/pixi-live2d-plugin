@@ -4,7 +4,6 @@ import { Cubism4InternalModel, Cubism4ModelSettings } from "@/cubism4";
 import { afterEach, beforeEach, expect } from "vitest";
 import soundUrl from "../assets/shizuku/sounds/tapBody_00.mp3";
 import { TEST_MODEL4, test } from "../env";
-import { delay } from "../utils";
 
 beforeEach(() => {
     config.sound = true;
@@ -22,36 +21,48 @@ test("lip sync", async () => {
         { idleMotionGroup: "nonExistent" },
     );
 
-    expect(model.coreModel.getParameterValueById(mouthParam)).toBe(0);
+    expect(model.coreModel.getParameterValueById(mouthParam), "initial value").toBe(0);
 
     await expect(model.lipSync.play(soundUrl, { volume: 1 })).resolves.toBe(undefined);
 
     const audio = model.lipSync.currentAudio!;
     expect(audio).toBeTruthy();
 
-    let prevTime = 0;
+    function getParamInBetween([begin, end]: number[]) {
+        return new Promise<number>((resolve) => {
+            const run = () => {
+                setTimeout(() => {
+                    const currentTime = model.lipSync.audioContext!.currentTime;
 
-    async function seekAndGetParam(time: number) {
-        audio.currentTime = time / 1000;
-        await delay(100);
+                    if (currentTime > audio.duration) {
+                        throw new Error("audio duration exceeded");
+                    }
 
-        let value = NaN;
+                    if (currentTime < begin! || currentTime > end!) {
+                        run();
+                        return;
+                    }
 
-        model.once("beforeModelUpdate", () => {
-            value = model.coreModel.getParameterValueById(mouthParam);
+                    let value = NaN;
+
+                    model.once("beforeModelUpdate", () => {
+                        value = model.coreModel.getParameterValueById(mouthParam);
+                    });
+                    model.update(100, performance.now());
+
+                    resolve(value);
+                });
+            };
+
+            run();
         });
-        model.update(time - prevTime, time);
-
-        prevTime = time;
-
-        return value;
     }
 
-    const timeOffsetBeforeWave = 100;
-    const timeOffsetDuringWave = 560;
+    const silentPeriod = [0.1, 0.45];
+    const voicePeriod = [0.55, 0.85];
 
-    await expect(seekAndGetParam(timeOffsetBeforeWave)).resolves.toBe(0);
-    await expect(seekAndGetParam(timeOffsetDuringWave)).resolves.toBeGreaterThan(0);
+    await expect(getParamInBetween(silentPeriod), "silent value").resolves.toBe(0);
+    await expect(getParamInBetween(voicePeriod), "voice value").resolves.toBeGreaterThan(0);
 });
 
 test("lip sync aborted", async () => {

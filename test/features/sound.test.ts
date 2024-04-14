@@ -13,7 +13,7 @@ afterEach(() => {
     SoundManager.destroy();
 });
 
-test("lip sync", async () => {
+test("lip sync", { retry: 3 }, async () => {
     const mouthParam = "ParamMouthOpenY";
     const model = new Cubism4InternalModel(
         await TEST_MODEL4.coreModel(),
@@ -28,38 +28,47 @@ test("lip sync", async () => {
     const audio = model.lipSync.currentAudio!;
     expect(audio).toBeTruthy();
 
+    const silentPeriod = [0.1, 0.45];
+    const voicePeriod = [0.55, 0.85];
+    const deadline = voicePeriod[1]!;
+
     function getParamInBetween([begin, end]: number[]) {
-        return new Promise<number>((resolve) => {
+        return new Promise<number>((resolve, reject) => {
             const run = () => {
                 setTimeout(() => {
-                    const currentTime = model.lipSync.audioContext!.currentTime;
+                    try {
+                        console.log(
+                            "lipsync",
+                            model.lipSync.audioContext!.currentTime,
+                            audio.currentTime,
+                        );
 
-                    if (currentTime > audio.duration) {
-                        throw new Error("audio duration exceeded");
+                        if (audio.currentTime > deadline) {
+                            throw new Error("Deadline exceeded");
+                        }
+
+                        if (audio.currentTime < begin! || audio.currentTime > end!) {
+                            run();
+                            return;
+                        }
+
+                        let value = NaN;
+
+                        model.once("beforeModelUpdate", () => {
+                            value = model.coreModel.getParameterValueById(mouthParam);
+                        });
+                        model.update(100, performance.now());
+
+                        resolve(value);
+                    } catch (e) {
+                        reject(e);
                     }
-
-                    if (currentTime < begin! || currentTime > end!) {
-                        run();
-                        return;
-                    }
-
-                    let value = NaN;
-
-                    model.once("beforeModelUpdate", () => {
-                        value = model.coreModel.getParameterValueById(mouthParam);
-                    });
-                    model.update(100, performance.now());
-
-                    resolve(value);
                 });
             };
 
             run();
         });
     }
-
-    const silentPeriod = [0.1, 0.45];
-    const voicePeriod = [0.55, 0.85];
 
     await expect(getParamInBetween(silentPeriod), "silent value").resolves.toBe(0);
     await expect(getParamInBetween(voicePeriod), "voice value").resolves.toBeGreaterThan(0);

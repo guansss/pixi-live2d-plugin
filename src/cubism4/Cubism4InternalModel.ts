@@ -247,10 +247,6 @@ export class Cubism4InternalModel extends InternalModel {
         this.coreModel.addParameterValueById(this.idParamBodyAngleX, this.focusController.x * 10); // -10 ~ 10
     }
 
-    updateFacialEmotion(mouthForm: number) {
-        this.coreModel.addParameterValueById(this.idParamMouthForm, mouthForm); // -1 ~ 1
-    }
-
     updateNaturalMovements(dt: DOMHighResTimeStamp, now: DOMHighResTimeStamp) {
         this.breath?.updateParameters(this.coreModel, dt / 1000);
     }

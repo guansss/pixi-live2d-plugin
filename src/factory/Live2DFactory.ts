@@ -17,19 +17,13 @@ import type { JSONObject } from "../types/helpers";
 import { FileLoader } from "./FileLoader";
 import { ZipLoader } from "./ZipLoader";
 
-export interface Live2DFactoryOptions extends Live2DModelOptions {
+export interface Live2DFactoryOptions extends Live2DModelOptions, Live2DResourceOptions {
     /**
      * Whether to check the consistency of the moc file. It's an internal
      * function of Cubism core and only available since Cubism 4 R7.
      * @default false
      */
     checkMocConsistency?: boolean;
-
-    /**
-     * String to use for crossOrigin properties on `<img>` elements when loading textures.
-     * @default undefined
-     */
-    crossOrigin?: string;
 
     /**
      * Callback invoked when the model has been loaded.
@@ -42,6 +36,14 @@ export interface Live2DFactoryOptions extends Live2DModelOptions {
      * @default undefined
      */
     onError?(e: Error): void;
+}
+
+export interface Live2DResourceOptions {
+    /**
+     * Value of the `crossOrigin` attribute of `<img>` and `<audio>` elements when loading resources.
+     * @default undefined
+     */
+    crossOrigin?: string;
 }
 
 /**

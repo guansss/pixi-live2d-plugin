@@ -96,7 +96,11 @@ export class LipSync {
         }
     }
 
-    analyze() {
+    /**
+     * Get value for lip sync
+     * @return A number between 0 and 1
+     */
+    getValue() {
         if (!this.analyser || !this.pcmData || !this.currentAudio) {
             return 0;
         }
@@ -108,19 +112,11 @@ export class LipSync {
             sumSquares += amplitude * amplitude;
         }
 
-        return Math.sqrt((sumSquares / this.pcmData.length) * 20);
-    }
-
-    /**
-     * Get value for lip sync
-     * @return A number between 0 and 1
-     */
-    getValue() {
-        let value = this.analyze();
-
-        if (value === 0) {
-            return value;
+        if (sumSquares === 0) {
+            return 0;
         }
+
+        let value = Math.sqrt((sumSquares / this.pcmData.length) * 20);
 
         const bias_weight = 1.2;
         const bias_power = 0.7;

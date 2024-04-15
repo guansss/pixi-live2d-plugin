@@ -134,6 +134,11 @@ export default defineConfig(({ command, mode }) => {
                     }
                 },
             },
+
+            // there seems to be a bug in vitest that causes the test to randomly fail
+            // and this option seems to fix it
+            // see: https://github.com/vitest-dev/vitest/issues/5401
+            fileParallelism: false,
         },
     };
 });

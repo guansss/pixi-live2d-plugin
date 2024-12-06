@@ -178,6 +178,33 @@ export class Live2DModel<IM extends InternalModel = InternalModel> extends Conta
         }
         return Promise.resolve(false);
     }
+    
+    /**
+     * Shorthand to start multiple motions in parallel.
+     * @param motionList - The motion list: {
+     *  group: The motion group,
+     *  index: Index in the motion group,
+     *  priority - The priority to be applied. (0: No priority, 1: IDLE, 2:NORMAL, 3:FORCE) (default: 2)
+     * }[]
+     * @return Promise that resolves with a list, indicates the motion is successfully started, with false otherwise.
+     */
+    async parallelMotion(
+        motionList: {
+            group: string,
+            index: number,
+            priority?: MotionPriority,
+        }[]
+    ): Promise<boolean[]> {
+        this.internalModel.extendParallelMotionManager(motionList.length);
+        const result = motionList.map((m, idx) => (
+            this.internalModel.parallelMotionManager[idx]?.startMotion(m.group, m.index, m.priority)
+        ));
+        let flags = [];
+        for (let r of result) {
+            flags.push(await r!);
+        }
+        return flags;
+    }
 
     /**
      * Updates the focus position. This will not cause the model to immediately look at the position,

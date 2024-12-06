@@ -3,6 +3,7 @@ import type { CommonHitArea, CommonLayout } from "@/cubism-common/InternalModel"
 import { InternalModel } from "@/cubism-common/InternalModel";
 import type { Cubism4ModelSettings } from "@/cubism4/Cubism4ModelSettings";
 import { Cubism4MotionManager } from "@/cubism4/Cubism4MotionManager";
+import { Cubism4ParallelMotionManager } from "@/cubism4/Cubism4ParallelMotionManager";
 import {
     ParamAngleX,
     ParamAngleY,
@@ -29,6 +30,7 @@ export class Cubism4InternalModel extends InternalModel {
     settings: Cubism4ModelSettings;
     coreModel: CubismModel;
     motionManager: Cubism4MotionManager;
+    parallelMotionManager: Cubism4ParallelMotionManager[];
 
     lipSync = true;
 
@@ -73,6 +75,7 @@ export class Cubism4InternalModel extends InternalModel {
         this.coreModel = coreModel;
         this.settings = settings;
         this.motionManager = new Cubism4MotionManager(settings, options);
+        this.parallelMotionManager = [];
 
         this.init();
     }
@@ -201,7 +204,9 @@ export class Cubism4InternalModel extends InternalModel {
 
         this.emit("beforeMotionUpdate");
 
-        const motionUpdated = this.motionManager.update(this.coreModel, now);
+        const motionUpdated0 = this.motionManager.update(model, now);
+        const parallelMotionUpdated = this.parallelMotionManager.map(m => m.update(model, now));
+        const motionUpdated = motionUpdated0 || parallelMotionUpdated.reduce((prev, curr) => prev || curr, false);
 
         this.emit("afterMotionUpdate");
 
@@ -267,6 +272,12 @@ export class Cubism4InternalModel extends InternalModel {
         this.renderer.setMvpMatrix(tempMatrix);
         this.renderer.setRenderState(gl.getParameter(gl.FRAMEBUFFER_BINDING), this.viewport);
         this.renderer.drawModel();
+    }
+    
+    extendParallelMotionManager(managerCount: number) {
+        while (this.parallelMotionManager.length < managerCount) {
+            this.parallelMotionManager.push(new Cubism4ParallelMotionManager(this.settings, this.motionManager))
+        }
     }
 
     destroy() {

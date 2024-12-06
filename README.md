@@ -147,6 +147,18 @@ window.PIXI = PIXI;
 })();
 ```
 
+### play multiple motions in parallel
+
+```ts
+model.parallelMotion([
+  {group: motion_group1, index: motion_index1, priority: MotionPriority.NORMAL},
+  {group: motion_group2, index: motion_index2, priority: MotionPriority.NORMAL},
+]);
+```
+
+If you need to synchronize the playback of expressions and sounds, please use`model.motion`/`model.speak` to play one of the motions, and use `model.parallelMotion` to play the remaining motions. Each item in the motion list has independent priority control based on its index, consistent with the priority logic of `model.motion`.
+
+
 ## Package importing
 
 When importing Pixi packages on-demand, you may need to manually register some plugins to enable optional features.

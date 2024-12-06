@@ -134,6 +134,17 @@ window.PIXI = PIXI;
 })();
 ```
 
+### 多动作同步播放
+
+```ts
+model.parallelMotion([
+  {group: motion_group1, index: motion_index1, priority: MotionPriority.NORMAL},
+  {group: motion_group2, index: motion_index2, priority: MotionPriority.NORMAL},
+]);
+```
+
+若需要同步播放表情、声音等请使用`model.motion`/`model.speak`播放其中一个动作，其余动作用`model.parallelMotion`播放。列表中按照index每一项都有独立的优先级控制，和`model.motion`逻辑一致。
+
 ## 包导入
 
 当按需导入 Pixi 的包时，需要手动注册相应的组件来启用可选功能

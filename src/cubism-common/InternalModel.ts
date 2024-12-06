@@ -1,6 +1,7 @@
 import { FocusController } from "@/cubism-common/FocusController";
 import type { ModelSettings } from "@/cubism-common/ModelSettings";
 import type { MotionManager, MotionManagerOptions } from "@/cubism-common/MotionManager";
+import type { ParallelMotionManager } from "@/cubism-common/ParallelMotionManager";
 import { LOGICAL_HEIGHT, LOGICAL_WIDTH } from "@/cubism-common/constants";
 import { Matrix, utils } from "@pixi/core";
 import type { Mutable } from "../types/helpers";
@@ -56,6 +57,7 @@ export abstract class InternalModel extends utils.EventEmitter {
     focusController = new FocusController();
 
     abstract motionManager: MotionManager;
+    abstract parallelMotionManager: ParallelMotionManager[];
 
     pose?: any;
     physics?: any;
@@ -270,6 +272,8 @@ export abstract class InternalModel extends utils.EventEmitter {
 
         this.motionManager.destroy();
         (this as Partial<this>).motionManager = undefined;
+        this.parallelMotionManager.forEach(m => m.destroy());
+        this.parallelMotionManager = [];
     }
 
     /**
@@ -326,4 +330,10 @@ export abstract class InternalModel extends utils.EventEmitter {
      * Draws the model.
      */
     abstract draw(gl: WebGLRenderingContext): void;
+    
+    /**
+     * Add parallel motion manager.
+     * @param managerCount - Count of parallel motion managers.
+     */
+    abstract extendParallelMotionManager(managerCount: number): void;
 }

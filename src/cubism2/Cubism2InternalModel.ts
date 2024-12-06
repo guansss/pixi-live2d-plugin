@@ -4,6 +4,7 @@ import { InternalModel } from "@/cubism-common/InternalModel";
 import { logger } from "../utils";
 import type { Cubism2ModelSettings } from "./Cubism2ModelSettings";
 import { Cubism2MotionManager } from "./Cubism2MotionManager";
+import { Cubism2ParallelMotionManager } from "./Cubism2ParallelMotionManager";
 import { Live2DEyeBlink } from "./Live2DEyeBlink";
 import type { Live2DPhysics } from "./Live2DPhysics";
 import type { Live2DPose } from "./Live2DPose";
@@ -21,6 +22,7 @@ export class Cubism2InternalModel extends InternalModel {
 
     coreModel: Live2DModelWebGL;
     motionManager: Cubism2MotionManager;
+    parallelMotionManager: Cubism2ParallelMotionManager[];
 
     eyeBlink?: Live2DEyeBlink;
 
@@ -61,6 +63,7 @@ export class Cubism2InternalModel extends InternalModel {
         this.coreModel = coreModel;
         this.settings = settings;
         this.motionManager = new Cubism2MotionManager(settings, options);
+        this.parallelMotionManager = [];
         this.eyeBlink = new Live2DEyeBlink(coreModel);
 
         this.eyeballXParamIndex = coreModel.getParamIndex("PARAM_EYE_BALL_X");
@@ -226,7 +229,9 @@ export class Cubism2InternalModel extends InternalModel {
 
         this.emit("beforeMotionUpdate");
 
-        const motionUpdated = this.motionManager.update(this.coreModel, now);
+        const motionUpdated0 = this.motionManager.update(model, now);
+        const parallelMotionUpdated = this.parallelMotionManager.map(m => m.update(model, now));
+        const motionUpdated = motionUpdated0 || parallelMotionUpdated.reduce((prev, curr) => prev || curr, false);
 
         this.emit("afterMotionUpdate");
 
@@ -296,6 +301,12 @@ export class Cubism2InternalModel extends InternalModel {
 
         this.hasDrawn = true;
         this.disableCulling = disableCulling;
+    }
+    
+    extendParallelMotionManager(managerCount: number) {
+        while (this.parallelMotionManager.length < managerCount) {
+            this.parallelMotionManager.push(new Cubism2ParallelMotionManager(this.settings, this.motionManager))
+        }
     }
 
     destroy() {
